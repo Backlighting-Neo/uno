@@ -17,7 +17,8 @@ module.exports = function convertCardToChinese(card) {
 	var result = '';
 
 	if(card.color) result += '['+color[card.color]+']';
-	if(card.number) result +=  card.number;
+	else result += '[黑]';
+	if(!isNaN(card.number)) result +=  card.number;
 	if(card.fun)   result += fun[card.fun];
 
 	return result;

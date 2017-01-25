@@ -39,6 +39,65 @@ module.exports = {
 		}
 		console.log(`生成了${temp.length}个游戏代码`);
 		global.game_serialno_pool = temp;
-	}
+	},
+
+	parseCard(string) {
+		console.log(string);
+		let colorMap = {
+			'红': 'red',
+			'绿': 'green',
+			'蓝': 'blue',
+			'黄': 'yellow'
+		}
+
+		let regexp = /\[([红绿蓝黄黑])\](.*)/;
+		let result = {};
+
+		if(!regexp.test(string)) {
+			console.error('格式不对');
+			return false;
+		}
+		else {
+			let match = string.match(regexp);
+			let color = match[1];
+			let fun   = match[2];
+
+			if(color == '黑') {
+				result.type = 'special';
+				if(fun == '换色')
+					result.fun = 'wild';
+				else if(fun == '+4')
+					result.fun = 'wild draw four';
+				else {
+					console.error('格式不对');
+					return false;
+				}
+			}
+			else {
+				result.color = colorMap[color];
+				if(fun == '翻转') {
+					result.type = 'function';
+					result.fun = 'reverse';
+				}
+				else if(fun == '+2') {
+					result.type = 'function';
+					result.fun = 'draw two';
+				}
+				else if(fun == '跳过') {
+					result.type = 'function';
+					result.fun = 'skip';
+				}
+				else if(!isNaN(fun)) {
+					result.type = 'normal';
+					result.number = parseInt(fun);
+				}
+				else {
+					console.error('格式不对');
+					return false;
+				}
+			}
+		}
+		return result;
+	} 
 
 }

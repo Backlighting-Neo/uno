@@ -28,7 +28,7 @@ function registerUserToGame(socket, message) {
 function messageRouter(socket, message) {
 	switch(message.type) {
 		case 'register': registerUserToGame(socket, message); break;
-		case ''
+		
 	}
 }
 
@@ -36,5 +36,4 @@ module.exports = function(socket) {
 	socket.on('message', message=>{
 		websocketHandler(socket, message);
 	});
-	socket.on()
 }

@@ -26,6 +26,7 @@ module.exports = function(express_server) {
 		console.log(`创建游戏 人数${req.query.player_num}人 ${gameID}`);
 		res.status(200).send({gameID})
 	})
+	
 	// 注册
 	express_server.get('/uno/game/register', (req, res)=>{
 		if(!req.query.player_name) {
