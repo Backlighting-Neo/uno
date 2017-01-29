@@ -3,8 +3,42 @@
   <head>
     <meta charset="utf-8">
     <title>uno</title>
+    <style type="text/css">
+  	  * {
+  	  	margin: 0;
+  	  	padding: 0;
+  	    font-family: Arial, Helvetica, sans-serif;
+  	  }
+
+  	  html, body {
+  	  	height: 100%;
+  	  }
+    </style>
   </head>
   <body>
+  	<script type="text/javascript">
+		  window.originFontSize = parseInt(getComputedStyle(document.getElementsByTagName('html')[0]).fontSize);
+		  var screenWidth = document.documentElement.clientWidth;
+		  var screenHeight = document.documentElement.clientHeight;
+		  document.getElementsByTagName('html')[0].style.fontSize = (1/originFontSize*1e4)*screenWidth/750+'%';
+
+	    // window.onresize = function() {
+	    //   document.getElementsByTagName('html')[0].style.fontSize = (1/window.originFontSize*1e4)*screenWidth/750+'%';
+	    // }
+
+	    var mql = window.matchMedia('(orientation: portrait)');
+	    function handleOrientationChange(mql) {
+        if(mql.matches) { // 竖屏
+        	console.log((1/window.originFontSize*1e4)*screenWidth/750+'%')
+          document.getElementsByTagName('html')[0].style.fontSize = (1/window.originFontSize*1e4)*screenWidth/750+'%';
+        }else {
+        	console.log((750*screenHeight/screenWidth));
+          document.getElementsByTagName('html')[0].style.fontSize = (1/window.originFontSize*1e4)*screenWidth/1500+'%';
+        }
+	    }
+	    handleOrientationChange(mql);
+	    mql.addListener(handleOrientationChange);
+  	</script>
     <div id="app"></div>
     <!-- built files will be auto injected -->
   </body>

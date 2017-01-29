@@ -42,7 +42,6 @@ module.exports = {
 	},
 
 	parseCard(string) {
-		console.log(string);
 		let colorMap = {
 			'红': 'red',
 			'绿': 'green',

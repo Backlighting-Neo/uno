@@ -57,8 +57,8 @@ const rl = readline.createInterface({
 
 function askToDiscard() {
 	let player = game.currentPlayer;
-	console.log('================================================');
-	console.log(`玩家 ${player.user_name} 现在的手牌是 ${game.getPlayerCard(player).map(utils.convertCardToChinese).join('  ')}`);
+	game._log('================================================');
+	game._log(`玩家 ${player.user_name} 现在的手牌[${game.getPlayerCard(player).length}张]  ${game.getPlayerCard(player).map(utils.convertCardToChinese).join('  ')}`);
 	rl.question(`请玩家 ${player.user_name} 出牌`, (cardString) => {
 		if(cardString == '抓牌') {
 			game.activeAskToGetACard(player);
@@ -68,7 +68,7 @@ function askToDiscard() {
 			if(card) game.discard(player, card);
 		}
 
-		console.log(`玩家 ${player.user_name} 现在的手牌是 ${game.getPlayerCard(player).map(utils.convertCardToChinese).join('  ')}`);
+		game._log(`玩家 ${player.user_name} 现在的手牌[${game.getPlayerCard(player).length}张]  ${game.getPlayerCard(player).map(utils.convertCardToChinese).join('  ')}`);
 		askToDiscard();
 	});
 }
