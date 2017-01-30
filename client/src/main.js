@@ -1,11 +1,20 @@
-// The Vue build version to load with the `import` command
-// (runtime-only or standalone) has been set in webpack.base.conf with an alias.
-import Vue from 'vue'
-import App from './App'
+'use strict';
 
-/* eslint-disable no-new */
-new Vue({
-  el: '#app',
-  template: '<App/>',
-  components: { App }
-})
+import Vue from 'vue';
+import VueRouter from 'vue-router';
+
+Vue.use(VueRouter);
+
+// 游戏界面
+const page_game = r => require.ensure([], () => r(require('./App')), 'game');
+
+const router = new VueRouter({
+	routes: [
+		{path: '/game/:game_id', component: page_game},
+	]
+});
+
+const app = new Vue({
+	el: '#app',
+  router,
+});

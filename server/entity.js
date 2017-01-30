@@ -12,7 +12,8 @@ const init_card_num_per_player = 7;
 class UnoGame {
 
 	constructor(player_num, master_player) {
-		this.game_id = 'Game ' + global.game_serialno_pool.pop();
+		// this.game_id = 'Game ' + global.game_serialno_pool.pop();
+		this.game_id = '123';
 	  this.player_num = player_num;  // 玩家人数
 	  this.player_list = []; // 玩家列表
 	  this.card_in_hand = {}; // 玩家手牌列表
@@ -29,7 +30,11 @@ class UnoGame {
 
 	  this._index = 0; // 出牌序次
 
+	  this.card_has_been_discarded = [];  // 已打出的牌
+
 	  this.game_discard_log = []; // 游戏出牌日志
+
+	  console.log(`创建游戏成功 人数${this.player_num}人 ${this.game_id}`);
 	}
 
 	get gameID() {
@@ -75,6 +80,13 @@ class UnoGame {
 		});
 	}
 
+	assignCardToPlayer(player, num=1) {
+		let cards = this.getSomeCardFromStack(num);
+		this._log(`玩家 ${player.user_name} 抓到了 ${cards.map(utils.convertCardToChinese).join('  ')}`);
+		this.card_in_hand[player.userID] = this._sortSomeCards(this.card_in_hand[player.userID].concat(cards));
+		return cards;
+	}
+
 	// 获得某个玩家手中的手牌
 	getPlayerCard(player) {
 		return this.card_in_hand[player.userID];
@@ -89,9 +101,14 @@ class UnoGame {
 		};
 
 		let result = 0;
-		if(card.type == 'normal') result += color[card.color]+card.number;
-		if(card.type == 'function') result += 50;
-		if(card.type == 'special') result += 1000;
+		if(card.type == 'normal') result = color[card.color]+card.number;
+		if(card.type == 'function')
+			if(card.fun == 'draw two') result = color[card.color]+13;
+			else if(card.fun == 'skip') result = color[card.color]+12;
+			else result = color[card.color]+11;
+		if(card.type == 'special')
+			if(card.fun == 'wild draw four') result = 600;
+			else result = 500;
 		return result;
 	}
 
@@ -121,9 +138,8 @@ class UnoGame {
 		}
 
 		this.card_in_hand[player.userID].splice(cardPosition, 1); // 打出的牌删掉
-		this.game_discard_log.push({
-			card, player:player.userID
-		});
+		card.random = Math.random(); // 用于前端的随机数
+		this.card_has_been_discarded.push(card);  // 向牌海中放入这张牌
 
 		switch (card.type) {
 			case 'normal': // 打出普通牌
@@ -146,16 +162,20 @@ class UnoGame {
 							this.game_direction = GAME_DIRECTION_REVERSE;
 						else
 							this.game_direction = GAME_DIRECTION_NORAML;
+						this._addIndex(1);
 						break;
 				}
 				break;
 			case 'special': // 打出黑牌
+				this.last_card = card;
 				switch (card.fun) {
 					case 'wild':
-
+						this._addIndex(1);
 						break;
 					case 'wild draw four':
-
+						this._addIndex(1);
+						this.assignCardToPlayer(this.currentPlayer, 4);
+						this._addIndex(1);
 						break;
 				}
 				break;
@@ -165,31 +185,56 @@ class UnoGame {
 	_checkCardCanDiscard(card) {
 		return (!this.last_card)  // 如果是第一张牌，则任何牌均可出
 			|| (card.type == 'special')  // 黑牌在任何情况下都可以出
-			|| (card.color == this.last_card.color) 
-			|| (card.number == this.last_card.number)
-			|| (card.fun == this.last_card.fun);
+			|| (card.color == this.last_card.color) // 颜色相同
+			|| (card.color == this.last_card.changeColor)  // 和刚刚换的颜色相同
+			|| (card.number == this.last_card.number) // 数字相同
+			|| (card.fun == this.last_card.fun); // 功能相同
 	}
 
 	activeAskToGetACard(player) {
-		this.assignCardToPlayer(player);
+		let cards = this.assignCardToPlayer(player);
 		this._addIndex(1);
+		return cards;
 	}
 
-	assignCardToPlayer(player, num=1) {
-		let cards = this.getSomeCardFromStack(num);
-		this._log(`玩家 ${player.user_name} 抓到了 ${cards.map(utils.convertCardToChinese).join('  ')}`);
-		this.card_in_hand[player.userID] = this._sortSomeCards(this.card_in_hand[player.userID].concat(cards));
+	broadcaseStatus(cmdPlayer) {
+		this.player_list.forEach(player=>{
+			if(player.userID !== cmdPlayer.userID && player.socket) {
+				player.socket.send(JSON.stringify({
+					status: this.getStatus(player)
+				}));
+			}
+		})
 	}
 
 	get currentPlayer() {
 		return this.player_list[this._index % this.player_num];
+	}
+
+	getStatus(player) {
+		return({
+			player: this.player_list.map((_player, _index)=>({
+				name: _player.userName,
+				cards_num: this.card_in_hand[_player.userID].length,
+				index: _index
+			})),
+			playerIndex: this.player_list.indexOf(player),
+			card_in_hand: this.card_in_hand[player.userID],
+			card_in_stack: this.remainCardNumberInStack,
+			last_card: this.last_card,
+			card_has_been_discarded: this.card_has_been_discarded.slice(-4, this.card_has_been_discarded.length),
+			direction: this.game_direction,
+			index: this._index % this.player_num
+		})
+
 	}
 }
 
 class UnoPlayer {
 
 	constructor(username) {
-		this.user_id = 'User '+utils.uuid();
+		// this.user_id = 'User '+utils.uuid();
+		this.user_id = username;
 		this.user_name = username;
 		this.socket = undefined;
 		this.score = 0;

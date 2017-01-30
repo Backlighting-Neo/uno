@@ -1,13 +1,21 @@
 <template>
-	<div class="outer">
+	<div class="outer" @click="emit">
 		<div class="container" :class="color">
-			<div class="ellipse" v-if="fun=='wild'">
+			<div class="ellipse" v-if="fun=='wild'&&!changeColor">
 				<div class="colorRect blue"></div>
 				<div class="colorRect green"></div>
 				<div class="colorRect red"></div>
 				<div class="colorRect yellow"></div>
 			</div>
-			<div class="ellipse" v-else />
+			<div class="ellipse" style="background-color: grey" v-if="fun=='wild'&&changeColor">
+				<div :class="{colorRect: true, blue: true, grey: changeColor!=='blue'}"></div>
+				<div :class="{colorRect: true, green: true, grey: changeColor!=='green'}"></div>
+				<div :class="{colorRect: true, red: true, grey: changeColor!=='red'}"></div>
+				<div :class="{colorRect: true, yellow: true, grey: changeColor!=='yellow'}"></div>
+			</div>
+
+			<div :class="['ellipse', (fun=='wild draw four'&&changeColor)?changeColor:'']" v-if="fun!='wild'" />
+
 			<div class="mainNumber" v-if="type=='normal'">{{number}}</div>
 			<div class="subNumber" v-if="type=='normal'">{{number}}</div>
 
@@ -53,12 +61,12 @@ export default {
 
   name: 'UnoCard',
 
-  props: ['type', 'color', 'number', 'fun'],
+  props: ['type', 'color', 'number', 'fun', 'changeColor'],
 
-  data () {
-    return {
-
-    };
+  methods: {
+  	emit() {
+  		this.$emit('click')
+  	}
   }
 };
 </script>
@@ -80,6 +88,7 @@ export default {
 		border-radius: 0.1rem;
 		border: 0.01px solid black;
 		background-color: #fff;
+		transition: opacity 0.2s;
 	}
 
 	.ellipse {
@@ -161,5 +170,9 @@ export default {
 	.blue {
 		background-color: #0492de;
 		color: #0492de;
+	}
+
+	.grey {
+		opacity: 0.1;
 	}
 </style>

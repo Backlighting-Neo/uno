@@ -1,3 +1,8 @@
+var entity = require('./entity.js');
+
+var UnoGame = entity.UnoGame;
+var UnoPlayer = entity.UnoPlayer;
+
 module.exports = function(express_server) {
 	// 创建游戏
 	express_server.get('/uno/game/create', (req, res)=>{
@@ -23,7 +28,6 @@ module.exports = function(express_server) {
 		let gameID = game.gameID;
 		global.game_list[gameID] = game;
 
-		console.log(`创建游戏 人数${req.query.player_num}人 ${gameID}`);
 		res.status(200).send({gameID})
 	})
 	
@@ -43,5 +47,55 @@ module.exports = function(express_server) {
 
 		console.log(`用户登陆 [${req.query.player_name}] ${userID}`);
 		res.status(200).send({token: userID});
+	})
+
+	express_server.get('/uno/game/status', (req, res)=>{
+		var gameID = req.headers.game;
+		var token  = req.headers.token;
+
+		var game = global.game_list[gameID];
+		var player = global.player_list[token];
+
+		res.status(200)
+		.send({
+			status: game.getStatus(player)
+		})
+	})
+
+	express_server.get('/uno/game/request_a_card', (req, res)=>{
+		var gameID = req.headers.game;
+		var token  = req.headers.token;
+
+		var game = global.game_list[gameID];
+		var player = global.player_list[token];
+
+		let cards = [].concat(game.activeAskToGetACard(player));
+
+		game.broadcaseStatus(player);
+		
+		res.status(200)
+		.send({
+			cards,
+			status: game.getStatus(player)
+		});
+	})
+
+	express_server.post('/uno/game/discard', (req, res)=>{
+		var gameID = req.headers.game;
+		var token  = req.headers.token;
+
+		var game = global.game_list[gameID];
+		var player = global.player_list[token];
+
+		let card = req.body.card;
+
+		game.discard(player, card);
+
+		game.broadcaseStatus(player);
+
+		res.status(200)
+		.send({
+			status: game.getStatus(player)
+		});
 	})
 }
