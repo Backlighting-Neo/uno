@@ -35,6 +35,7 @@
 
     <div class="myCards" >
       <div class="tips" v-show="tips && tips!==''">{{tips}}</div>
+      <div class="myName">{{userName}}</div>
       <!-- <div class="rushButton">抢</div> -->
       <div class="chooseColor" v-show="showColorChooseModal">
         <div
@@ -129,6 +130,7 @@ export default {
       utils.ajax('/uno/game/request_a_card')
       .then(res=>{
         let card = res.cards[0];
+        this.tips = `我抓到了一张 ${utils.convertCardToChinese(card)}`;
         this.handleStatus(res.status);
         this.loading_cardstack = false;
       })
@@ -143,6 +145,9 @@ export default {
       this.currentIndex = status.index;
       this.playerList = status.player;
       this.last_card = status.last_card;
+
+      if(this.currentIndex == this.playerIndex)
+        this.tips = '轮到我出牌';
     },
 
     requestDiscard(index, changeColor) {  // 请求出牌
@@ -173,12 +178,13 @@ export default {
     window.sessionStorage.gameID = gameID;
     window.sessionStorage.userID = userID;
 
+    this.userName = userID;
+
     if(!window.game_socket) {
       window.game_socket = new WebSocket(utils.webscoketServer+`/?gameID=${gameID}&userID=${userID}`);
     }
     window.game_socket.onmessage = message=>{
       message = JSON.parse(message.data);
-      console.log(message);
       this.handleStatus(message.status);
     };
     
@@ -202,9 +208,7 @@ export default {
       playerIndex: -1,
       currentIndex: -1,
       last_card: undefined,
-
-
-
+      userName: ''
     })
   }
 }
@@ -277,7 +281,7 @@ export default {
   .cardStack {
     position: absolute;
     right: 0.3rem;
-    top: 50%;
+    top: 45%;
     margin-top: -0.8rem;
     color: white;
     font-size: 0.2rem;
@@ -333,6 +337,18 @@ export default {
     color: white;
     border-radius: 0.3rem; 
     font-size: 0.2rem;
+    background-color: #23617a;
+  }
+
+  .myName {
+    position: absolute;
+    right: 0;
+    top: -0.6rem;
+    padding: 0.05rem 0.2rem;
+    text-align: center;
+    color: white;
+    border-radius: 0.3rem; 
+    font-size: 0.3rem;
     background-color: #23617a;
   }
 

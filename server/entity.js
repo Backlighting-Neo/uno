@@ -197,10 +197,11 @@ class UnoGame {
 		return cards;
 	}
 
-	broadcaseStatus(cmdPlayer) {
+	broadcaseStatus(cmdPlayer, action) {
 		this.player_list.forEach(player=>{
 			if(player.userID !== cmdPlayer.userID && player.socket) {
 				player.socket.send(JSON.stringify({
+					action,
 					status: this.getStatus(player)
 				}));
 			}

@@ -32,8 +32,9 @@ var websocket_server = websockets.createServer()
 websocket_server.on('connect', socket=>{
 	let params = queryParser.parse(socket._req.url.replace('/','')); // {gameID, userID}
 
-	if(global.player_list[params.userID].socket) socket.close();
-	
+	if(global.player_list[params.userID].socket)
+		global.player_list[params.userID].socket.close();
+
 	global.player_list[params.userID].socket = socket;
 	console.log(`用户 [${params.userID}] Websocket 已连通`);
 })
