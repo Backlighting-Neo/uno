@@ -80,7 +80,7 @@ export default {
   },
   methods: {
     chooseCard(index) {  // 选牌
-      if(this.playerIndex!==this.currentIndex) return;
+      if(!this.online || this.playerIndex!==this.currentIndex) return;
 
       let card = this.cardInHand[index];
 
@@ -124,7 +124,7 @@ export default {
     },
 
     clickCardStack() {  // 点牌堆
-      if(this.loading_cardstack || this.playerIndex!==this.currentIndex) return;
+      if(!this.online || this.loading_cardstack || this.playerIndex!==this.currentIndex) return;
 
       this.loading_cardstack = true;
       utils.ajax('/uno/game/request_a_card')
@@ -145,6 +145,8 @@ export default {
       this.currentIndex = status.index;
       this.playerList = status.player;
       this.last_card = status.last_card;
+
+      this.userName = status.player[status.playerIndex].name;
 
       if(this.currentIndex == this.playerIndex)
         this.tips = '轮到我出牌';
@@ -178,28 +180,36 @@ export default {
     window.sessionStorage.gameID = gameID;
     window.sessionStorage.userID = userID;
 
-    this.userName = userID;
-
     if(!window.game_socket) {
       window.game_socket = new WebSocket(utils.webscoketServer+`/?gameID=${gameID}&userID=${userID}`);
     }
+
+    window.game_socket.onopen = ()=>{
+      this.tips = '游戏开始';
+      this.online = true;
+    };
     window.game_socket.onmessage = message=>{
       message = JSON.parse(message.data);
       this.handleStatus(message.status);
     };
+    window.game_socket.onclose = ()=>{
+      this.tips = '您已断线，重现上线请刷新页面';
+      this.online = false;
+    }
     
 
     this.fetchGameStatus();
   },
   data() {
     return({
-      tips: '',
+      tips: '正在连接服务器……',
       showColorChooseModal: false,
       choosePreReadyCardIndex: -1,
       choosePreReadyColor: '',
 
       loading_cardstack: false,
 
+      online: false,
       playerList: [],
       direction: GAME_DIRECTION_NORAML,
       remainCardNum: 118,
@@ -208,19 +218,17 @@ export default {
       playerIndex: -1,
       currentIndex: -1,
       last_card: undefined,
-      userName: ''
+      userName: '',
     })
   }
 }
 </script>
 
-<style>
+<style scoped>
   #app {
     height: 100%;
     overflow: hidden;
     position: relative;
-    background-image: radial-gradient(50% 50% at center center, #23617a,#052a3d);
-    background-image: -webkit-radial-gradient(50% 50% at center center, #23617a,#052a3d);
   }
 
   .myCards {

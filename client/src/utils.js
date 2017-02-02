@@ -19,8 +19,8 @@ var fun = {
 
 module.exports = {
 
-	server: 'http://192.168.99.214:8083',
-	webscoketServer: 'ws://192.168.99.214:8084',
+	server: 'http://'+location.hostname+':8083',
+	webscoketServer: 'ws://'+location.hostname+':8084',
 
 	convertCardToChinese(card) {
 		var result = '';
@@ -52,10 +52,10 @@ module.exports = {
 		if(!option.headers) option.headers = {};
 
 		option.headers["content-type"] = 'application/json';
-		if(window.sessionStorage.userID)
-			option.headers.token = window.sessionStorage.userID;
-		if(window.sessionStorage.gameID)
-			option.headers.game  = window.sessionStorage.gameID;
+		if(window.localStorage.uno_userToken)
+			option.headers.token = window.localStorage.uno_userToken;
+		if(window.localStorage.gameID)
+			option.headers.game  = window.localStorage.gameID;
 
 		if(option.body && option.body.constructor != String) option.body = JSON.stringify(option.body);
 

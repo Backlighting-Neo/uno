@@ -10,7 +10,6 @@ var queryParser = require('query-string');
 
 var entity = require('./entity.js');
 var utils = require('./utils/utils.js');
-// var websocketHandler = require('./websocketHandler.js');
 var expressHandler  = require('./expressHandler.js');
 
 var UnoGame = entity.UnoGame;
@@ -32,11 +31,25 @@ var websocket_server = websockets.createServer()
 websocket_server.on('connect', socket=>{
 	let params = queryParser.parse(socket._req.url.replace('/','')); // {gameID, userID}
 
-	if(global.player_list[params.userID].socket)
-		global.player_list[params.userID].socket.close();
+	var player = global.player_list[params.userID];
+	var game   = global.game_list[params.gameID];
+
+	if(player.socket) player.socket.close();
 
 	global.player_list[params.userID].socket = socket;
-	console.log(`用户 [${params.userID}] Websocket 已连通`);
+
+	game.playerJoin(player);
+	console.log(`用户[${params.userID}] 加入 游戏[${params.gameID}] Websocket 已连通`);
+});
+websocket_server.on('close', socket=>{
+	let params = queryParser.parse(socket._req.url.replace('/','')); // {gameID, userID}
+
+	var player = global.player_list[params.userID];
+	var game   = global.game_list[params.gameID];
+
+	player.socket = undefined;
+	game.playerSeparate(player);
+	console.log(`用户[${params.userID}] 游戏[${params.gameID}] Websocket 已断线`);
 })
 websocket_server.listen(8084);
 console.log(`Uno服务器正在运行在 web=8083, socket=8084 端口上 ...`);
@@ -51,7 +64,7 @@ global.player_list[playerA.userID] = playerA;
 global.player_list[playerB.userID] = playerB;
 global.player_list[playerC.userID] = playerC;
 
-var game = new UnoGame(3, playerA);
+var game = new UnoGame(playerA);
 global.game_list[game.gameID] = game;
 
 game.playerJoin(playerA);

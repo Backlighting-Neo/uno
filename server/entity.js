@@ -11,10 +11,9 @@ const init_card_num_per_player = 7;
 
 class UnoGame {
 
-	constructor(player_num, master_player) {
-		// this.game_id = 'Game ' + global.game_serialno_pool.pop();
-		this.game_id = '123';
-	  this.player_num = player_num;  // 玩家人数
+	constructor(master_player) {
+		this.game_id = global.game_serialno_pool.pop()+'';
+	  // this.player_num = player_num;  // 玩家人数
 	  this.player_list = []; // 玩家列表
 	  this.card_in_hand = {}; // 玩家手牌列表
 	  this.card_stack = utils.generateCardStack(); // 获得一副洗好的牌
@@ -24,17 +23,16 @@ class UnoGame {
 
 	  this.game_status = GAME_PREPARE;
 
+	  this.game_chain = {};
+	  this.active_player_num = 0;
 	  this.last_card = undefined;
-
 	  this.next_discard_player = master_player;
-
 	  this._index = 0; // 出牌序次
-
 	  this.card_has_been_discarded = [];  // 已打出的牌
 
 	  this.game_discard_log = []; // 游戏出牌日志
 
-	  console.log(`创建游戏成功 人数${this.player_num}人 ${this.game_id}`);
+	  console.log(`创建游戏成功 ${this.game_id}`);
 	}
 
 	get gameID() {
@@ -64,10 +62,28 @@ class UnoGame {
 		}
 	}
 
+	// 玩家离开游戏
+	playerSeparate(player) {
+		let position = this.player_list.indexOf(player);
+		this.player_list.splice(position, 1);
+	}
+
 	// 开局
 	startGame() {
 		this._log('开局');
-		if(this.player_list.length != this.player_num) return false;
+
+		if(this.player_list.length<3) return false;
+		this.player_num = this.player_list.length;
+		this.active_player_num = this.player_num;
+
+		this.player_list.forEach((player, index)=>{
+			this.game_chain[player.userID] = {
+				pre: this.player_list[(index+this.player_num-1)%this.player_num].userID,
+				next: this.player_list[(index+1)%this.player_num].userID
+			};
+		});
+		console.log(this.game_chain);
+
 		this._assignCardToPlayer();
 	}
 
@@ -180,6 +196,15 @@ class UnoGame {
 				}
 				break;
 		}
+
+		if(this.card_in_hand[player.userID].length === 0) { // 玩家全部打完
+			let preUserID = this.game_chain[player.userID].pre;
+			let nextUserID = this.game_chain[player.userID].next;
+			delete this.game_chain[player.userID];
+			this.game_chain[preUserID].next = nextUserID;
+			this.active_player_num -= 1;
+		}
+
 	}
 
 	_checkCardCanDiscard(card) {
@@ -234,8 +259,7 @@ class UnoGame {
 class UnoPlayer {
 
 	constructor(username) {
-		// this.user_id = 'User '+utils.uuid();
-		this.user_id = username;
+		this.user_id = 'User:'+utils.uuid();
 		this.user_name = username;
 		this.socket = undefined;
 		this.score = 0;

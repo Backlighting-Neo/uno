@@ -6,14 +6,6 @@ var UnoPlayer = entity.UnoPlayer;
 module.exports = function(express_server) {
 	// 创建游戏
 	express_server.get('/uno/game/create', (req, res)=>{
-		if(!req.query.player_num || isNaN(req.query.player_num)) {
-			res.status(500)
-			.send({
-				error: '人数不确定'
-			});
-			return false;
-		}
-
 		if(!req.headers.token || !global.player_list[req.headers.token]) {
 			res.status(500)
 			.send({
@@ -24,7 +16,7 @@ module.exports = function(express_server) {
 
 		let user = global.player_list[req.headers.token];
 
-		let game = new UnoGame(parseInt(req.query.player_num), user);
+		let game = new UnoGame(user);
 		let gameID = game.gameID;
 		global.game_list[gameID] = game;
 
@@ -47,6 +39,14 @@ module.exports = function(express_server) {
 
 		console.log(`用户登陆 [${req.query.player_name}] ${userID}`);
 		res.status(200).send({token: userID});
+	})
+
+	express_server.get('/uno/game/exist_room', (req, res)=>{
+		res.status(200).send({exist: !!global.game_list[req.query.game_id]})
+	})
+
+	express_server.get('/uno/game/exist_token', (req, res)=>{
+		res.status(200).send({exist: !!global.player_list[req.headers.token]})
 	})
 
 	express_server.get('/uno/game/status', (req, res)=>{
