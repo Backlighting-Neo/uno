@@ -12,7 +12,7 @@ const page_waitting = r => require.ensure([], () => r(require('./Waitting')), 'g
 
 const router = new VueRouter({
 	routes: [
-		{path: '/welcome', component: page_welcome},
+		{path: '/', component: page_welcome},
 		{path: '/waitting/:game_id', component: page_waitting},
 		{path: '/game/:game_id', component: page_game},
 	]

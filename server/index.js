@@ -56,9 +56,9 @@ console.log(`Uno服务器正在运行在 web=8083, socket=8084 端口上 ...`);
 
 
 // test case
-var playerA = new UnoPlayer('A');
-var playerB = new UnoPlayer('B');
-var playerC = new UnoPlayer('C');
+var playerA = new UnoPlayer('猫小咪');
+var playerB = new UnoPlayer('笨小兔');
+var playerC = new UnoPlayer('奶萌兔');
 
 global.player_list[playerA.userID] = playerA;
 global.player_list[playerB.userID] = playerB;
@@ -71,4 +71,4 @@ game.playerJoin(playerA);
 game.playerJoin(playerB);
 game.playerJoin(playerC);
 
-game.startGame();
+// game.startGame();

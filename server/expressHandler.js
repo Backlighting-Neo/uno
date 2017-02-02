@@ -41,14 +41,40 @@ module.exports = function(express_server) {
 		res.status(200).send({token: userID});
 	})
 
+	// 查询某个游戏房间状态
 	express_server.get('/uno/game/exist_room', (req, res)=>{
-		res.status(200).send({exist: !!global.game_list[req.query.game_id]})
+		let game = global.game_list[req.query.game_id];
+		res.status(200).send({
+			exist: !!game,
+			num: game?game.player_list.length:-1,
+			status: game?game.game_status:-1 // 0准备 1游戏中
+		})
 	})
 
+	// 检验Token
 	express_server.get('/uno/game/exist_token', (req, res)=>{
 		res.status(200).send({exist: !!global.player_list[req.headers.token]})
 	})
 
+	express_server.get('/uno/game/start', (req, res)=>{
+		var gameID = req.headers.game;
+		var token  = req.headers.token;
+
+		var game = global.game_list[gameID];
+		var player = global.player_list[token];
+
+		game.startGame(player);
+
+		res.status(200)
+		.send({
+			action: {
+				type: 'start'
+			},
+			status: game.getStatus(player)
+		})
+	})
+
+	// 开局
 	express_server.get('/uno/game/status', (req, res)=>{
 		var gameID = req.headers.game;
 		var token  = req.headers.token;

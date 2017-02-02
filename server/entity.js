@@ -3,6 +3,7 @@
 var utils = require('./utils/utils.js');
 
 const GAME_PREPARE = 0;
+const GAME_PLAYING = 1;
 
 const GAME_DIRECTION_NORAML = 0;
 const GAME_DIRECTION_REVERSE = 1;
@@ -17,7 +18,7 @@ class UnoGame {
 	  this.player_list = []; // 玩家列表
 	  this.card_in_hand = {}; // 玩家手牌列表
 	  this.card_stack = utils.generateCardStack(); // 获得一副洗好的牌
-	  this.master_player = master_player.userID; // 房主Token
+	  this.master_player = master_player; // 房主Token
 
 	  this.game_direction = GAME_DIRECTION_NORAML;  // 游戏出牌方向
 
@@ -59,17 +60,20 @@ class UnoGame {
 		if(this.player_list.indexOf(player)==-1) {  // 要加入的玩家不在游戏列表中
 			this._log(`玩家 ${player.user_name} 加入游戏`);
 			this.player_list.push(player);
+			this.broadcaseStatus();
 		}
 	}
 
 	// 玩家离开游戏
 	playerSeparate(player) {
 		let position = this.player_list.indexOf(player);
+		if(player == this.master_player)  // 如果是房主退出，则更换房主
+			this.master_player = this.player_list[(position+1)%this.player_list.length];
 		this.player_list.splice(position, 1);
 	}
 
 	// 开局
-	startGame() {
+	startGame(player) {
 		this._log('开局');
 
 		if(this.player_list.length<3) return false;
@@ -78,13 +82,18 @@ class UnoGame {
 
 		this.player_list.forEach((player, index)=>{
 			this.game_chain[player.userID] = {
+				index,
 				pre: this.player_list[(index+this.player_num-1)%this.player_num].userID,
 				next: this.player_list[(index+1)%this.player_num].userID
 			};
 		});
-		console.log(this.game_chain);
 
 		this._assignCardToPlayer();
+		this.game_status = GAME_PLAYING;
+		
+		this.broadcaseStatus(player, {
+			type: 'start'
+		});
 	}
 
 	// 初始发牌
@@ -96,6 +105,7 @@ class UnoGame {
 		});
 	}
 
+	// 给player玩家发num张牌
 	assignCardToPlayer(player, num=1) {
 		let cards = this.getSomeCardFromStack(num);
 		this._log(`玩家 ${player.user_name} 抓到了 ${cards.map(utils.convertCardToChinese).join('  ')}`);
@@ -130,16 +140,23 @@ class UnoGame {
 
 
 	_sortSomeCards(cards) {
-		return cards.sort((card1, card2)=>(this._scoreACard(card2)-this._scoreACard(card1)))
+		return cards.sort((card1, card2)=>(this._scoreACard(card2) - this._scoreACard(card1)));
 	}
 
-	_addIndex(delta) {
-		if(this.game_direction == GAME_DIRECTION_NORAML)
-			this._index += delta;
-		else
-			this._index += this.player_num - delta;
+	// 把出牌顺序向后顺延一位
+	_addIndex() {
+		let currentPlayer = this.currentPlayer;
+		if(this.game_direction == GAME_DIRECTION_NORAML) {
+			let nextPlayerUserID = this.game_chain[currentPlayer.userID].next;
+			this._index = this.game_chain[nextPlayerUserID].index;
+		}
+		else {
+			let perPlayerUserID = this.game_chain[currentPlayer.userID].pre;
+			this._index = this.game_chain[perPlayerUserID].index;
+		}
 	}
 
+	// 玩家player要求出一张card手牌
 	discard(player, card) {
 		let cardString = utils.convertCardToChinese(card);
 		let cardInHand = this.getPlayerCard(player);
@@ -160,25 +177,26 @@ class UnoGame {
 		switch (card.type) {
 			case 'normal': // 打出普通牌
 				this.last_card = card;
-				this._addIndex(1);
+				this._addIndex();
 				break;
 			case 'function':  // 打出功能牌
 				this.last_card = card;
 				switch (card.fun) {
 					case 'skip': // 跳过牌
-						this._addIndex(2);
+						this._addIndex();
+						this._addIndex();
 						break;
 					case 'draw two':
-						this._addIndex(1);
+						this._addIndex();
 						this.assignCardToPlayer(this.currentPlayer, 2);
-						this._addIndex(1);
+						this._addIndex();
 						break;
 					case 'reverse': // 翻转牌
 						if(this.game_direction == GAME_DIRECTION_NORAML)
 							this.game_direction = GAME_DIRECTION_REVERSE;
 						else
 							this.game_direction = GAME_DIRECTION_NORAML;
-						this._addIndex(1);
+						this._addIndex();
 						break;
 				}
 				break;
@@ -186,12 +204,12 @@ class UnoGame {
 				this.last_card = card;
 				switch (card.fun) {
 					case 'wild':
-						this._addIndex(1);
+						this._addIndex();
 						break;
 					case 'wild draw four':
-						this._addIndex(1);
+						this._addIndex();
 						this.assignCardToPlayer(this.currentPlayer, 4);
-						this._addIndex(1);
+						this._addIndex();
 						break;
 				}
 				break;
@@ -202,11 +220,13 @@ class UnoGame {
 			let nextUserID = this.game_chain[player.userID].next;
 			delete this.game_chain[player.userID];
 			this.game_chain[preUserID].next = nextUserID;
+			this.game_chain[nextUserID].pre = preUserID;
 			this.active_player_num -= 1;
 		}
 
 	}
 
+	// 检查某张卡牌当前是否可打出
 	_checkCardCanDiscard(card) {
 		return (!this.last_card)  // 如果是第一张牌，则任何牌均可出
 			|| (card.type == 'special')  // 黑牌在任何情况下都可以出
@@ -216,15 +236,17 @@ class UnoGame {
 			|| (card.fun == this.last_card.fun); // 功能相同
 	}
 
+	// 玩家player要求抓一张牌
 	activeAskToGetACard(player) {
 		let cards = this.assignCardToPlayer(player);
-		this._addIndex(1);
+		this._addIndex();
 		return cards;
 	}
 
+	// 通过Websocket广播游戏状态
 	broadcaseStatus(cmdPlayer, action) {
 		this.player_list.forEach(player=>{
-			if(player.userID !== cmdPlayer.userID && player.socket) {
+			if((!cmdPlayer || player.userID !== cmdPlayer.userID) && player.socket) {
 				player.socket.send(JSON.stringify({
 					action,
 					status: this.getStatus(player)
@@ -233,17 +255,20 @@ class UnoGame {
 		})
 	}
 
+	// 当前轮到的出牌玩家
 	get currentPlayer() {
 		return this.player_list[this._index % this.player_num];
 	}
 
+	// 获得某一位玩家当前的游戏状态
 	getStatus(player) {
 		return({
 			player: this.player_list.map((_player, _index)=>({
 				name: _player.userName,
-				cards_num: this.card_in_hand[_player.userID].length,
+				cards_num: (this.card_in_hand[_player.userID] || []).length,
 				index: _index
 			})),
+			masterPlayerIndex: this.player_list.indexOf(this.master_player),
 			playerIndex: this.player_list.indexOf(player),
 			card_in_hand: this.card_in_hand[player.userID],
 			card_in_stack: this.remainCardNumberInStack,
@@ -252,8 +277,8 @@ class UnoGame {
 			direction: this.game_direction,
 			index: this._index % this.player_num
 		})
-
 	}
+
 }
 
 class UnoPlayer {

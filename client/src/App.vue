@@ -175,13 +175,19 @@ export default {
     }
   },
   created() {
-    let gameID = this.$route.params.game_id;
-    let userID = this.$route.query.user_id;
-    window.sessionStorage.gameID = gameID;
-    window.sessionStorage.userID = userID;
+    // let gameID = this.$route.params.game_id;
+    // let userID = this.$route.query.user_id;
+    let gameID = window.localStorage.gameID;
+    let userID = window.localStorage.uno_userToken;
+    // window.sessionStorage.gameID = gameID;
+    // window.sessionStorage.userID = userID;
 
     if(!window.game_socket) {
       window.game_socket = new WebSocket(utils.webscoketServer+`/?gameID=${gameID}&userID=${userID}`);
+    }
+    else {
+      this.tips = '游戏开始';
+      this.online = true;
     }
 
     window.game_socket.onopen = ()=>{

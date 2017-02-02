@@ -63,6 +63,7 @@ export default {
   	handleClickCreateRoom() {
   		utils.ajax('/uno/game/create')
   		.then(res=>{
+  			window.localStorage.gameID = res.gameID;
   			this.$router.push('/waitting/'+res.gameID);
   		})
   	},
@@ -75,10 +76,21 @@ export default {
   		}
   		utils.ajax('/uno/game/exist_room?game_id='+gameID)
   		.then(res=>{
-  			if(!res.exist)
+  			if(!res.exist) {
   				alert('房间不存在');
-  			else
-  				this.$router.push('/waitting/'+gameID);
+  				return;
+  			}
+  			if(res.num >= 8) {
+  				alert('房间游戏人数已满');
+  				return;
+  			}
+  			if(res.status == 1) {
+  				alert('房间游戏已开');
+  				return;
+  			}
+  			
+  			window.localStorage.gameID = gameID;
+				this.$router.push('/waitting/'+gameID);
   		})
   	}
   },
