@@ -189,7 +189,7 @@ class UnoGame {
 						this._addIndex();
 						this._addIndex();
 						break;
-					case 'draw two':
+					case 'draw two': // +2牌
 						this._addIndex();
 						this.assignCardToPlayer(this.currentPlayer, 2);
 						this._addIndex();
@@ -206,10 +206,10 @@ class UnoGame {
 			case 'special': // 打出黑牌
 				this.last_card = card;
 				switch (card.fun) {
-					case 'wild':
+					case 'wild': // 换色牌
 						this._addIndex();
 						break;
-					case 'wild draw four':
+					case 'wild draw four':  // +4牌
 						this._addIndex();
 						this.assignCardToPlayer(this.currentPlayer, 4);
 						this._addIndex();
@@ -237,12 +237,12 @@ class UnoGame {
 
 	// 检查某张卡牌当前是否可打出
 	_checkCardCanDiscard(card) {
-		return (!last_card)  // 如果是第一张牌，则任何牌均可出
+		return (!this.last_card)  // 如果是第一张牌，则任何牌均可出
 			|| (card.type == 'special')  // 黑牌在任何情况下都可以出
-			|| (card.color && card.color == last_card.color) // 颜色相同
-			|| (last_card.changeColor && card.color == last_card.changeColor)  // 和刚刚换的颜色相同
-			|| (card.color && card.number == last_card.number) // 数字相同
-			|| (card.fun && card.fun == last_card.fun); // 功能相同
+			|| (card.color && card.color == this.last_card.color) // 颜色相同
+			|| (this.last_card.changeColor && card.color == this.last_card.changeColor)  // 和刚刚换的颜色相同
+			|| (card.color && card.number == this.last_card.number) // 数字相同
+			|| (card.fun && card.fun == this.last_card.fun); // 功能相同
 	}
 
 	// 玩家player要求抓一张牌
