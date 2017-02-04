@@ -39,10 +39,10 @@ module.exports = {
 	checkCardCanDiscard(card, last_card) {
 		return (!last_card)  // 如果是第一张牌，则任何牌均可出
 			|| (card.type == 'special')  // 黑牌在任何情况下都可以出
-			|| (card.color == last_card.color) // 颜色相同
-			|| (card.color == last_card.changeColor)  // 和刚刚换的颜色相同
-			|| (card.number == last_card.number) // 数字相同
-			|| (card.fun == last_card.fun); // 功能相同
+			|| (card.color && card.color == last_card.color) // 颜色相同
+			|| (last_card.changeColor && card.color == last_card.changeColor)  // 和刚刚换的颜色相同
+			|| (card.color && card.number == last_card.number) // 数字相同
+			|| (card.fun && card.fun == last_card.fun); // 功能相同
 	},
 
 	ajax(url, option) {

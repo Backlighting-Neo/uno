@@ -67,8 +67,11 @@ class UnoGame {
 	// 玩家离开游戏
 	playerSeparate(player) {
 		let position = this.player_list.indexOf(player);
-		if(player == this.master_player)  // 如果是房主退出，则更换房主
+
+		if(player == this.master_player) { // 如果是房主退出，则更换房主
 			this.master_player = this.player_list[(position+1)%this.player_list.length];
+
+		} 
 		this.player_list.splice(position, 1);
 	}
 
@@ -215,6 +218,12 @@ class UnoGame {
 				break;
 		}
 
+		this._log(`玩家 [${player.userName}] 打出一张 ${cardString}`);
+
+		if(this.card_in_hand[player.userID].length === 1) { // UNO
+			this._log(`玩家 [${player.userName}] UNO`);
+		}
+
 		if(this.card_in_hand[player.userID].length === 0) { // 玩家全部打完
 			let preUserID = this.game_chain[player.userID].pre;
 			let nextUserID = this.game_chain[player.userID].next;
@@ -228,12 +237,12 @@ class UnoGame {
 
 	// 检查某张卡牌当前是否可打出
 	_checkCardCanDiscard(card) {
-		return (!this.last_card)  // 如果是第一张牌，则任何牌均可出
+		return (!last_card)  // 如果是第一张牌，则任何牌均可出
 			|| (card.type == 'special')  // 黑牌在任何情况下都可以出
-			|| (card.color == this.last_card.color) // 颜色相同
-			|| (card.color == this.last_card.changeColor)  // 和刚刚换的颜色相同
-			|| (card.number == this.last_card.number) // 数字相同
-			|| (card.fun == this.last_card.fun); // 功能相同
+			|| (card.color && card.color == last_card.color) // 颜色相同
+			|| (last_card.changeColor && card.color == last_card.changeColor)  // 和刚刚换的颜色相同
+			|| (card.color && card.number == last_card.number) // 数字相同
+			|| (card.fun && card.fun == last_card.fun); // 功能相同
 	}
 
 	// 玩家player要求抓一张牌
