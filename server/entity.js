@@ -14,7 +14,6 @@ class UnoGame {
 
 	constructor(master_player) {
 		this.game_id = global.game_serialno_pool.pop()+'';
-	  // this.player_num = player_num;  // 玩家人数
 	  this.player_list = []; // 玩家列表
 	  this.card_in_hand = {}; // 玩家手牌列表
 	  this.card_stack = utils.generateCardStack(); // 获得一副洗好的牌
@@ -30,6 +29,7 @@ class UnoGame {
 	  this.next_discard_player = master_player;
 	  this._index = 0; // 出牌序次
 	  this.card_has_been_discarded = [];  // 已打出的牌
+	  this.win_list = []; // 赢了的玩家列表
 
 	  this.game_discard_log = []; // 游戏出牌日志
 
@@ -231,6 +231,7 @@ class UnoGame {
 			this.game_chain[preUserID].next = nextUserID;
 			this.game_chain[nextUserID].pre = preUserID;
 			this.active_player_num -= 1;
+			this.win_list.push(player.userID);
 		}
 
 	}
@@ -241,7 +242,7 @@ class UnoGame {
 			|| (card.type == 'special')  // 黑牌在任何情况下都可以出
 			|| (card.color && card.color == this.last_card.color) // 颜色相同
 			|| (this.last_card.changeColor && card.color == this.last_card.changeColor)  // 和刚刚换的颜色相同
-			|| (card.color && card.number == this.last_card.number) // 数字相同
+			|| (card.number && card.number == this.last_card.number) // 数字相同
 			|| (card.fun && card.fun == this.last_card.fun); // 功能相同
 	}
 
@@ -275,7 +276,8 @@ class UnoGame {
 			player: this.player_list.map((_player, _index)=>({
 				name: _player.userName,
 				cards_num: (this.card_in_hand[_player.userID] || []).length,
-				index: _index
+				index: _index,
+				win_position: this.win_list.indexOf(_player.userID)
 			})),
 			masterPlayerIndex: this.player_list.indexOf(this.master_player),
 			playerIndex: this.player_list.indexOf(player),

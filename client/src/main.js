@@ -9,12 +9,14 @@ Vue.use(VueRouter);
 const page_game = r => require.ensure([], () => r(require('./App')), 'game');
 const page_welcome = r => require.ensure([], () => r(require('./Welcome')), 'game');
 const page_waitting = r => require.ensure([], () => r(require('./Waitting')), 'game');
+const page_test = r => require.ensure([], () => r(require('./Test')), 'game');
 
 const router = new VueRouter({
 	routes: [
 		{path: '/', component: page_welcome},
 		{path: '/waitting/:game_id', component: page_waitting},
 		{path: '/game/:game_id', component: page_game},
+		{path: '/test', component: page_test}
 	]
 });
 

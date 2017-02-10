@@ -51,6 +51,7 @@ export default {
 		bottom: 0.1rem;
 		width: 0.7rem;
 		height: 0.3rem;
+		line-height: 0.3rem;
 		text-align: center;
 		color: white;
 		border-radius: 0.15rem; 

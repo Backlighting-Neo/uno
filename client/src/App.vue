@@ -33,10 +33,13 @@
       />
     </div>
 
+    <div class="toastContainer" v-show="messageList.length>1">
+      <div class="toast" v-for="(message, index) in messageList" :key="message" @animationend="toastAnimationend">{{message}}</div>
+    </div>
+
     <div class="myCards" >
       <div class="tips" v-show="tips && tips!==''">{{tips}}</div>
       <div class="myName">{{userName}}</div>
-      <!-- <div class="rushButton">抢</div> -->
       <div class="chooseColor" v-show="showColorChooseModal">
         <div
           class="colorCircle"
@@ -149,7 +152,10 @@ export default {
       this.userName = status.player[status.playerIndex].name;
 
       if(this.currentIndex == this.playerIndex)
-        this.tips = '轮到我出牌';
+        if(status.card_in_hand.some(card=>utils.checkCardCanDiscard(card, this.last_card)))
+          this.tips = '轮到我出牌';
+        else
+          this.tips = '你没有牌可出，只能摸牌';
     },
 
     requestDiscard(index, changeColor) {  // 请求出牌
@@ -172,6 +178,14 @@ export default {
       .then(res=>{
         this.handleStatus(res.status);
       })
+    },
+
+    showToast(text) {
+      this.messageList.push(text);
+    },
+
+    toastAnimationend(event) {
+      this.messageList.splice(this.messageList.indexOf(event.target.innerHTML), 1);
     }
   },
   created() {
@@ -179,8 +193,6 @@ export default {
     // let userID = this.$route.query.user_id;
     let gameID = window.localStorage.gameID;
     let userID = window.localStorage.uno_userToken;
-    // window.sessionStorage.gameID = gameID;
-    // window.sessionStorage.userID = userID;
 
     if(!window.game_socket) {
       window.game_socket = new WebSocket(utils.webscoketServer+`/?gameID=${gameID}&userID=${userID}`);
@@ -202,7 +214,6 @@ export default {
       this.tips = '您已断线，重现上线请刷新页面';
       this.online = false;
     }
-    
 
     this.fetchGameStatus();
   },
@@ -225,6 +236,7 @@ export default {
       currentIndex: -1,
       last_card: undefined,
       userName: '',
+      messageList: []
     })
   }
 }
@@ -456,5 +468,46 @@ export default {
   .blue {
     background-color: #0492de;
     color: #0492de;
+  }
+
+  .toastContainer {
+    position: fixed;
+    top: 2rem;
+    left: 0;
+    right: 0;
+  }
+
+  .toast {
+    height: 0.5rem;
+    padding: 0 0.5rem;
+    line-height: 0.5rem;
+    margin: 0 auto 0.5rem;
+    opacity: 0;
+    background-color: #23617a;
+    color: white;
+    border-radius: 0.5rem;
+    font-size: 0.25rem;
+    text-align: center;
+    animation: toast 2.5s;
+    overflow: hidden;
+    box-shadow: 0 0 5px 5px #23617a;
+  }
+
+  @keyframes toast {
+    0%, 100% {
+      width: 0;
+      color: #23617a;
+    }
+
+    10%, 90% {
+      opacity: 0.9;
+      color: white;
+      width: 3rem;
+      height: 0.5rem;
+    }
+
+    20%, 80% {
+      transform: scale(1.2);
+    }
   }
 </style>

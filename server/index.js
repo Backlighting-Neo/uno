@@ -56,6 +56,8 @@ var playerA = new UnoPlayer('猫小咪');
 var playerB = new UnoPlayer('笨小兔');
 var playerC = new UnoPlayer('奶萌兔');
 
+console.log(playerA.userID);
+
 global.player_list[playerA.userID] = playerA;
 global.player_list[playerB.userID] = playerB;
 global.player_list[playerC.userID] = playerC;
@@ -67,4 +69,4 @@ game.playerJoin(playerA);
 game.playerJoin(playerB);
 game.playerJoin(playerC);
 
-// game.startGame();
+game.startGame();
