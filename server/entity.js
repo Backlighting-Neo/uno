@@ -13,7 +13,11 @@ const init_card_num_per_player = 7;
 class UnoGame {
 
 	constructor(master_player) {
-		this.game_id = global.game_serialno_pool.pop()+'';
+		if(global.config.debug)
+			this.game_id = 123;
+		else
+			this.game_id = global.game_serialno_pool.pop()+'';
+
 	  this.player_list = []; // 玩家列表
 	  this.card_in_hand = {}; // 玩家手牌列表
 	  this.card_stack = utils.generateCardStack(); // 获得一副洗好的牌
@@ -295,7 +299,11 @@ class UnoGame {
 class UnoPlayer {
 
 	constructor(username) {
-		this.user_id = 'User:'+utils.uuid();
+		if(global.config.debug)
+			this.user_id = username;
+		else
+			this.user_id = 'User:'+utils.uuid();
+
 		this.user_name = username;
 		this.socket = undefined;
 		this.score = 0;

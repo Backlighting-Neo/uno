@@ -1,9 +1,41 @@
+var cors = require('cors');
+var bodyParser = require('body-parser');
+var logger = require('express_logger');
+
 var entity = require('./entity.js');
 
 var UnoGame = entity.UnoGame;
 var UnoPlayer = entity.UnoPlayer;
 
 module.exports = function(express_server) {
+	express_server.use(cors());
+	express_server.use(bodyParser.json());
+	express_server.use(logger('detailed'));
+	
+	express_server.all('*', (req, res, next)=>{
+		if(req.headers.game) {
+			let gameID = req.headers.game;
+			if(!global.game_list[gameID]) {
+				res.status(500)
+				.send({
+					error: 'no game'
+				});
+				return;
+			}
+		}
+		if(req.headers.token) {
+			let token  = req.headers.token;
+			if(!global.player_list[token]) {
+				res.status(401)
+				.send({
+					error: 'no player'
+				});
+				return;
+			}
+		}
+		next();
+	})
+
 	// 创建游戏
 	express_server.get('/uno/game/create', (req, res)=>{
 		if(!req.headers.token || !global.player_list[req.headers.token]) {
@@ -81,6 +113,13 @@ module.exports = function(express_server) {
 
 		var game = global.game_list[gameID];
 		var player = global.player_list[token];
+
+		if(!game) {
+			res.send({
+				error: '没有对应的游戏房间'
+			})
+			return;			
+		}
 
 		res.status(200)
 		.send({

@@ -33,7 +33,7 @@
       />
     </div>
 
-    <div class="toastContainer" v-show="messageList.length>1">
+    <div class="toastContainer" v-show="messageList.length>0">
       <div class="toast" v-for="(message, index) in messageList" :key="message" @animationend="toastAnimationend">{{message}}</div>
     </div>
 
@@ -149,13 +149,18 @@ export default {
       this.playerList = status.player;
       this.last_card = status.last_card;
 
+      if(this.last_card && this.last_card.changeColor)
+        this.showToast(`现在颜色变成 ${utils.convertColorToChinese(this.last_card.changeColor)}色`);
+
       this.userName = status.player[status.playerIndex].name;
 
-      if(this.currentIndex == this.playerIndex)
+      if(this.currentIndex == this.playerIndex) {
+        this.showToast('你的回合');
         if(status.card_in_hand.some(card=>utils.checkCardCanDiscard(card, this.last_card)))
           this.tips = '轮到我出牌';
         else
           this.tips = '你没有牌可出，只能摸牌';
+      }
     },
 
     requestDiscard(index, changeColor) {  // 请求出牌
@@ -189,9 +194,10 @@ export default {
     }
   },
   created() {
-    // let gameID = this.$route.params.game_id;
-    // let userID = this.$route.query.user_id;
+    if(this.$route.params.game_id) window.localStorage.gameID = this.$route.params.game_id;
     let gameID = window.localStorage.gameID;
+
+    if(this.$route.query.user) window.localStorage.uno_userToken = this.$route.query.user;
     let userID = window.localStorage.uno_userToken;
 
     if(!window.game_socket) {
@@ -350,6 +356,7 @@ export default {
   }
 
   .direction {
+    display: inline-block;
     width: 5rem;
     height: 5rem;
   }
@@ -472,7 +479,7 @@ export default {
 
   .toastContainer {
     position: fixed;
-    top: 2rem;
+    top: 3.5rem;
     left: 0;
     right: 0;
   }
@@ -483,14 +490,14 @@ export default {
     line-height: 0.5rem;
     margin: 0 auto 0.5rem;
     opacity: 0;
-    background-color: #23617a;
+    background-color: #3591b6;
     color: white;
     border-radius: 0.5rem;
     font-size: 0.25rem;
     text-align: center;
     animation: toast 2.5s;
     overflow: hidden;
-    box-shadow: 0 0 5px 5px #23617a;
+    box-shadow: 0 0 20px 8px #23617a;
   }
 
   @keyframes toast {
