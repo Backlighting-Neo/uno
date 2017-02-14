@@ -96,6 +96,11 @@ export default {
   },
 
   created() {
+    if(window.localStorage.gaming_gameID) {
+      this.$router.replace('/game/'+window.localStorage.gaming_gameID);
+      return;
+    }
+
   	confirmLock = false;
   	if(window.localStorage.uno_username) {
   		this.inputName = window.localStorage.uno_username;

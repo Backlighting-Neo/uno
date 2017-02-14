@@ -222,6 +222,7 @@ export default {
     window.game_socket.onopen = ()=>{
       this.tips = '游戏开始';
       this.online = true;
+      window.localStorage.gaming_gameID = window.localStorage.gameID;
     };
     window.game_socket.onmessage = message=>{
       message = JSON.parse(message.data);
@@ -230,6 +231,7 @@ export default {
     window.game_socket.onclose = ()=>{
       this.tips = '您已断线，重现上线请刷新页面';
       this.online = false;
+      window.localStorage.removeItem('gaming_gameID');
     }
 
     this.fetchGameStatus();
