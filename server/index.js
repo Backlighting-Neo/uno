@@ -30,22 +30,24 @@ websocket_server.listen(config.websocketPort);
 console.log(`Uno服务器正在运行在 web=${config.expressPort}, socket=${config.websocketPort} 端口上 ...`);
 
 
-// test case
-var playerA = new UnoPlayer('A');
-var playerB = new UnoPlayer('B');
-var playerC = new UnoPlayer('C');
+if(config.debug) {
+	// test case
+	var playerA = new UnoPlayer('A');
+	var playerB = new UnoPlayer('B');
+	var playerC = new UnoPlayer('C');
 
-console.log(playerA.userID);
+	console.log(playerA.userID);
 
-global.player_list[playerA.userID] = playerA;
-global.player_list[playerB.userID] = playerB;
-global.player_list[playerC.userID] = playerC;
+	global.player_list[playerA.userID] = playerA;
+	global.player_list[playerB.userID] = playerB;
+	global.player_list[playerC.userID] = playerC;
 
-var game = new UnoGame(playerA);
-global.game_list[game.gameID] = game;
+	var game = new UnoGame(playerA);
+	global.game_list[game.gameID] = game;
 
-game.playerJoin(playerA);
-game.playerJoin(playerB);
-game.playerJoin(playerC);
+	game.playerJoin(playerA);
+	game.playerJoin(playerB);
+	game.playerJoin(playerC);
 
-game.startGame();
+	game.startGame();
+}

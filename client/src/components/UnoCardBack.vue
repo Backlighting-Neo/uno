@@ -1,5 +1,11 @@
 <template>
-	<div class="outer" @click="emit">
+	<div class="outer win" v-if="winPosition>0">
+		<img src="../assets/WinMark_1.png" class="winMark" v-if="winPosition===1">
+		<img src="../assets/WinMark_2.png" class="winMark" v-if="winPosition===2">
+		<img src="../assets/WinMark_3.png" class="winMark" v-if="winPosition===3">
+		<img src="../assets/WinMark.png" class="winMark" v-if="winPosition>3">
+	</div>
+	<div class="outer" @click="emit" v-else>
 		<div class="container">
 			<img src="../assets/CardBack.png" class="img">
 			<div class="Uno" v-if="hasUno">UNO</div>
@@ -10,7 +16,7 @@
 <script>
 export default {
   name: 'UnoCardBack',
-  props: ['hasUno'],
+  props: ['winPosition', 'hasUno'],
   methods: {
   	emit() {
   		this.$emit('click')
@@ -37,6 +43,18 @@ export default {
 		border: 0.01px solid black;
 		background-color: #fff;
 		transition: opacity 0.2s;
+	}
+
+	.win {
+		border: 1px dashed white;
+		background-color: transparent;
+	}
+
+	.winMark {
+		width: 0.9rem;
+		height: 0.9rem;
+		margin-top: 0.35rem;
+		margin-left: 0.05rem;
 	}
 
 	.img {

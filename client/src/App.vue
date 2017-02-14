@@ -9,6 +9,7 @@
       <div class="otherPlayerCardContainer" v-for="(player, index) in (playerList.concat(playerList).slice(playerIndex+1, playerIndex+playerList.length))">
         <UnoCardBack
           :hasUno="player.cards_num===1"
+          :winPosition="player.win_position"
           :class="{cardDiactive: player.index!==currentIndex}"
         />
         <div class="otherPlayerName">{{player.name}}</div>
@@ -146,7 +147,17 @@ export default {
       this.direction = status.direction;
       this.playerIndex = status.playerIndex;
       this.currentIndex = status.index;
+
+      status.player.forEach((player, index)=>{
+        if(player.cards_num !== this.playerList[index].cards_num)
+          if(player.cards_num === 1)
+            this.showToast(`${player.name} UNO!`);
+          else if(player.cards_num === 0)
+            this.showToast(`${player.name} 第${player.win_position}名`);
+      })
+
       this.playerList = status.player;
+
       this.last_card = status.last_card;
 
       if(this.last_card && this.last_card.changeColor)
