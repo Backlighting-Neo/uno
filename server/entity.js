@@ -8,7 +8,7 @@ const GAME_PLAYING = 1;
 const GAME_DIRECTION_NORAML = 0;
 const GAME_DIRECTION_REVERSE = 1;
 
-const init_card_num_per_player = 7;
+const init_card_num_per_player = 1;
 
 class UnoGame {
 
@@ -74,9 +74,10 @@ class UnoGame {
 
 		if(player == this.master_player) { // 如果是房主退出，则更换房主
 			this.master_player = this.player_list[(position+1)%this.player_list.length];
-
 		} 
-		this.player_list.splice(position, 1);
+		
+		if(this.game_status === GAME_PREPARE)
+			this.player_list.splice(position, 1);
 	}
 
 	// 开局
@@ -276,6 +277,7 @@ class UnoGame {
 
 	// 获得某一位玩家当前的游戏状态
 	getStatus(player) {
+		console.log(this.player_list);
 		return({
 			player: this.player_list.map((_player, _index)=>({
 				name: _player.userName,

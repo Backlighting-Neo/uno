@@ -110,6 +110,9 @@ export default {
   			if(res.exist)
   				this.stage = 1;
   			else {
+          window.localStorage.removeItem('gameID');
+          window.localStorage.removeItem('User:b58b7d4f-d26d-2247-c0f5-2aa75c2163b9');
+          location.reload();
   				this.handleClickConfirmButton();
   			}
   		})

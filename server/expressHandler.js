@@ -11,6 +11,39 @@ module.exports = function(express_server) {
 	express_server.use(cors());
 	express_server.use(bodyParser.json());
 	express_server.use(logger('detailed'));
+
+	// 检验Token
+	express_server.get('/uno/game/exist_token', (req, res)=>{
+		res.status(200).send({exist: !!global.player_list[req.headers.token]})
+	})
+
+	// 注册
+	express_server.get('/uno/game/register', (req, res)=>{
+		if(!req.query.player_name) {
+			res.status(500)
+			.send({
+				error: '需要用户名'
+			});
+			return false;
+		}
+
+		let user = new UnoPlayer(req.query.player_name);
+		let userID = user.userID;
+		global.player_list[userID] = user;
+
+		console.log(`用户登陆 [${req.query.player_name}] ${userID}`);
+		res.status(200).send({token: userID});
+	})
+
+	// 查询某个游戏房间状态
+	express_server.get('/uno/game/exist_room', (req, res)=>{
+		let game = global.game_list[req.query.game_id];
+		res.status(200).send({
+			exist: !!game,
+			num: game?game.player_list.length:-1,
+			status: game?game.game_status:-1 // 0准备 1游戏中
+		})
+	})
 	
 	express_server.all('*', (req, res, next)=>{
 		if(req.headers.game) {
@@ -53,39 +86,6 @@ module.exports = function(express_server) {
 		global.game_list[gameID] = game;
 
 		res.status(200).send({gameID})
-	})
-	
-	// 注册
-	express_server.get('/uno/game/register', (req, res)=>{
-		if(!req.query.player_name) {
-			res.status(500)
-			.send({
-				error: '需要用户名'
-			});
-			return false;
-		}
-
-		let user = new UnoPlayer(req.query.player_name);
-		let userID = user.userID;
-		global.player_list[userID] = user;
-
-		console.log(`用户登陆 [${req.query.player_name}] ${userID}`);
-		res.status(200).send({token: userID});
-	})
-
-	// 查询某个游戏房间状态
-	express_server.get('/uno/game/exist_room', (req, res)=>{
-		let game = global.game_list[req.query.game_id];
-		res.status(200).send({
-			exist: !!game,
-			num: game?game.player_list.length:-1,
-			status: game?game.game_status:-1 // 0准备 1游戏中
-		})
-	})
-
-	// 检验Token
-	express_server.get('/uno/game/exist_token', (req, res)=>{
-		res.status(200).send({exist: !!global.player_list[req.headers.token]})
 	})
 
 	express_server.get('/uno/game/start', (req, res)=>{

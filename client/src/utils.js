@@ -67,7 +67,9 @@ module.exports = {
 				else {
 					reject(res.message);
 				}
-			}, error=>{
+			})
+			.catch(error=>{
+				
 				reject(error);
 			})
 		})

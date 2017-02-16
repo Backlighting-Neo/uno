@@ -1,6 +1,5 @@
 <template>
-  <div id="app">
-
+  <div id="app" :class="'bgc-'+currentColor">
     <div :class="{directionContainer: true, antiClockwise: direction==1, clockwise: direction==0}">
       <img src="./assets/Direction.png" alt="" class="direction">
     </div>
@@ -9,8 +8,8 @@
       <div class="otherPlayerCardContainer" v-for="(player, index) in (playerList.concat(playerList).slice(playerIndex+1, playerIndex+playerList.length))">
         <UnoCardBack
           :hasUno="player.cards_num===1"
-          :winPosition="player.win_position"
-          :class="{cardDiactive: player.index!==currentIndex}"
+          :winPosition="player.win_position+1"
+          :class="{cardDiactive: player.win_position===-1 && player.index!==currentIndex}"
         />
         <div class="otherPlayerName">{{player.name}}</div>
       </div>
@@ -75,6 +74,10 @@ const GAME_DIRECTION_REVERSE = 1;  // AntiClockwise
 
 const Text_Press_Again = '再次点击以确定你的选择';
 const Text_Choose_Color = '在上方选择你要换成什么颜色';
+
+const CHINESE_NUMBER = '一二三四五六七八九'.split('');
+
+var last_toast = '';
 
 export default {
   name: 'UnoGame',
@@ -149,19 +152,28 @@ export default {
       this.currentIndex = status.index;
 
       status.player.forEach((player, index)=>{
+        if(!this.playerList[index]) return;
+
         if(player.cards_num !== this.playerList[index].cards_num)
           if(player.cards_num === 1)
             this.showToast(`${player.name} UNO!`);
           else if(player.cards_num === 0)
-            this.showToast(`${player.name} 第${player.win_position}名`);
+            this.showToast(`${player.name} 第${CHINESE_NUMBER[player.win_position]}名`);
       })
+
+      if(status.card_in_hand.length === 0)
+        this.tips = `你赢得了游戏 第${CHINESE_NUMBER[player.win_position]}名`;
 
       this.playerList = status.player;
 
       this.last_card = status.last_card;
 
-      if(this.last_card && this.last_card.changeColor)
+      if(this.last_card && this.last_card.changeColor) {
         this.showToast(`现在颜色变成 ${utils.convertColorToChinese(this.last_card.changeColor)}色`);
+      }
+
+      if(status.last_card) 
+        this.currentColor = status.last_card.changeColor || status.last_card.color;
 
       this.userName = status.player[status.playerIndex].name;
 
@@ -197,6 +209,8 @@ export default {
     },
 
     showToast(text) {
+      if(last_toast === text) return;
+      last_toast = text;
       this.messageList.push(text);
     },
 
@@ -245,6 +259,7 @@ export default {
 
       loading_cardstack: false,
 
+      currentColor: 'blue',
       online: false,
       playerList: [],
       direction: GAME_DIRECTION_NORAML,
@@ -266,6 +281,27 @@ export default {
     height: 100%;
     overflow: hidden;
     position: relative;
+    transition: background-color 600ms;
+  }
+
+  .bgc-red {
+    background-image: radial-gradient(50% 50% at center center, #7a2b23,#3d0f05);
+    background-image: -webkit-radial-gradient(50% 50% at center center, #7a2b23,#3d0f05);
+  }
+
+  .bgc-green {
+    background-image: radial-gradient(50% 50% at center center, #237a2a, #053d11);
+    background-image: -webkit-radial-gradient(50% 50% at center center, #237a2a, #053d11);
+  }
+
+  .bgc-blue {
+    background-image: radial-gradient(50% 50% at center center, #23617a,#052a3d);
+    background-image: -webkit-radial-gradient(50% 50% at center center, #23617a,#052a3d);
+  }
+
+  .bgc-yellow {
+    background-image: radial-gradient(50% 50% at center center, #7a6f23,#3d3905);
+    background-image: -webkit-radial-gradient(50% 50% at center center, #7a6f23,#3d3905);
   }
 
   .myCards {

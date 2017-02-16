@@ -7,9 +7,9 @@ Vue.use(VueRouter);
 
 // 游戏界面
 const page_game = r => require.ensure([], () => r(require('./App')), 'game');
-const page_welcome = r => require.ensure([], () => r(require('./Welcome')), 'game');
-const page_waitting = r => require.ensure([], () => r(require('./Waitting')), 'game');
-const page_test = r => require.ensure([], () => r(require('./Test')), 'game');
+const page_welcome = r => require.ensure([], () => r(require('./Welcome')), 'welcome');
+const page_waitting = r => require.ensure([], () => r(require('./Waitting')), 'welcome');
+const page_test = r => require.ensure([], () => r(require('./Test')), 'welcome');
 
 const router = new VueRouter({
 	routes: [
